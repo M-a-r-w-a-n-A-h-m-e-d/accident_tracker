@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>584287843034-04o87doo624anrgjntooai00rboma2gn.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.584287843034-04o87doo624anrgjntooai00rboma2gn</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAOtpr6uF3Ra8_GKyd_rAMHG55WCz0rtcY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>584287843034</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.accidentTracker</string>
+	<key>PROJECT_ID</key>
+	<string>ivision-1a692</string>
+	<key>STORAGE_BUCKET</key>
+	<string>ivision-1a692.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:584287843034:ios:bc29bcdbf015538bad2be3</string>
+	<key>DATABASE_URL</key>
+	<string>https://ivision-1a692-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>
