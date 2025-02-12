@@ -3,9 +3,9 @@ import 'package:accident_tracker/App/auth/sign_up_page.dart';
 import 'package:accident_tracker/App/main/welcome_page.dart';
 import 'package:accident_tracker/core/services/auth_service.dart';
 import 'package:accident_tracker/common/Widgets/my_textfield.dart';
+import 'package:accident_tracker/core/services/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../common/Widgets/passText_customWidget.dart';
 import '../main/navigation_bar.dart';
 import 'verify_email_page.dart';
@@ -59,6 +59,13 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       _showErrorMessage('Please fill all fields');
       return;
     }
+      var result = await DataBase(email: email, password: password)
+          .searchWithEmail(email);
+
+      if (result == null || result.isEmpty) {
+        _showErrorMessage('User does not exist');
+        return;
+      }
 
     try {
       final userCredential =
@@ -74,14 +81,17 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => const Home(
-                      myIndex: 1,
-                    ),),
+              builder: (context) => const Home(
+                myIndex: 1,
+              ),
+            ),
           );
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const VerifyEmailPage()),
+            MaterialPageRoute(
+              builder: (context) => const VerifyEmailPage(),
+            ),
           );
         }
       } else {
@@ -270,25 +280,4 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       ),
     );
   }
-
-  Future<bool> _onWillPop() async {
-    DateTime currentTime = DateTime.now();
-    final difference = currentTime.difference(lastBackPressed);
-    bool isExitWarning = difference >= const Duration(seconds: 2);
-
-    lastBackPressed = currentTime;
-
-    if (isExitWarning) {
-      Fluttertoast.showToast(
-        msg: 'Press back again to exit',
-        fontSize: 18,
-      );
-      return Future.value(false);
-    } else {
-      Fluttertoast.cancel();
-      return Future.value(true);
-    }
-  }
-
-  DateTime lastBackPressed = DateTime.now();
 }

@@ -1,16 +1,21 @@
-import 'dart:async';
-import 'package:accident_tracker/App/main/welcome_page.dart';
-import 'package:flutter/material.dart';
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+// import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:accident_tracker/App/main/welcome_page.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:liquid_swipe/liquid_swipe.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:flutter/material.dart';
+import '../../core/services/database.dart';
+import '../../flavors.dart';
 import '../auth/auth_page.dart';
+import 'dart:async';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
@@ -20,7 +25,7 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
-  final shorebirdCodePush = ShorebirdCodePush();
+  // final shorebirdCodePush = ShorebirdCodePush();
   bool _showCards = false;
   bool isDark = false;
   bool _initialized = false;
@@ -30,8 +35,10 @@ class _LoadingPageState extends State<LoadingPage> {
   @override
   void initState() {
     super.initState();
+    DataBase(name: '', email: '', password: '').createTables();
     _loadSettings();
     _checkFirstLaunch();
+    F.appFlavor == Flavor.unit ? unitIdFunc() : null;
     // _initializeShorebird();
   }
 
@@ -39,6 +46,29 @@ class _LoadingPageState extends State<LoadingPage> {
   //   await shorebirdCodePush.currentPatchNumber();
   //   await _checkFirstLaunch();
   // }
+
+  Future<void> unitIdFunc() async {
+    try {
+      // Get the current user
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        log('No user is currently logged in');
+        return; // Exit if no user is logged in
+      }
+      // Fetch user data from the database
+      var result = await DataBase(email: user.providerData[0].email ?? '', password: 'password')
+          .searchWithEmail(user.providerData[0].email ?? '');
+
+      if (result == null || result.isEmpty) {
+        log('User data not found in the database');
+        return; // Exit if no data found for the user
+      }
+
+    } catch (e) {
+      log("Error: $e");
+    }
+  }
 
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
@@ -77,15 +107,26 @@ class _LoadingPageState extends State<LoadingPage> {
       );
       await remoteConfig.fetchAndActivate();
 
-      final latestVersion = remoteConfig.getString('latest_version');
+      var mainVersion = remoteConfig.getString('latest_version');
+      var latestVersion = mainVersion.split(',');
+      var finalVersion = '1';
+      F.appFlavor == Flavor.unit
+          ? finalVersion = latestVersion[2]
+          : F.appFlavor == Flavor.development
+              ? finalVersion = latestVersion[1]
+              : F.appFlavor == Flavor.staging
+                  ? finalVersion = latestVersion[3]
+                  : finalVersion = latestVersion[0];
+      latestVersion = finalVersion.split(':');
+      finalVersion = latestVersion[1];
+      finalVersion = finalVersion.replaceAll('"', '');
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       if (mounted) {
         setState(() {
-          _haveUpgrade = currentVersion != latestVersion;
+          _haveUpgrade = currentVersion != finalVersion;
         });
       }
-
       if (_haveUpgrade) {
         _showUpdateDialog();
       } else {
@@ -139,63 +180,6 @@ class _LoadingPageState extends State<LoadingPage> {
       );
     }
   }
-
-  // Future<void> _shoreBirdCheckForUpdates() async {
-  //   try {
-  //     await shorebirdCodePush.downloadUpdateIfAvailable();
-  //     final isUpdateAvailable =
-  //         await shorebirdCodePush.isNewPatchAvailableForDownload();
-  //     print(isUpdateAvailable);
-
-  //     if (isUpdateAvailable) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('New update available! Downloading...')),
-  //       );
-
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Update downloaded successfully!')),
-  //       );
-  //       _shorebirdNavigateToNextPage(true);
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('No updates available.')),
-  //       );
-  //       _shorebirdNavigateToNextPage(false);
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error checking for updates: $e')),
-  //     );
-  //   }
-  // }
-  //
-  // void _shorebirdNavigateToNextPage(bool x) {
-  //   if (x) {
-  //     Future.delayed(const Duration(seconds: 3)).then(
-  //       (_) => Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => const AuthPage(),
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   setState(() {
-  //     _showCards = _isFirstLaunch;
-  //     _initialized = true;
-  //   });
-  //   if (_haveUpgrade) {
-  //     Navigator.of(context, rootNavigator: true).pop();
-  //   }
-  //   Future.delayed(const Duration(seconds: 3)).then(
-  //     (_) => Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (context) => _showCards ? const Cards() : const AuthPage(),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   void _showUpdateDialog() {
     showDialog(

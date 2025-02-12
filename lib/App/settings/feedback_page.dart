@@ -34,69 +34,108 @@ class _MyFeedbackState extends State<MyFeedback> {
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back,
-                color: Theme.of(context).colorScheme.onSecondary),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const Home(
-                    myIndex: 2,
+        resizeToAvoidBottomInset: false,
+        body: Column(
+          children: [
+            Stack(
+              children: [
+                Image.asset(
+                  'assets/top_background.png',
+                  height: 250,
+                  width: MediaQuery.of(context).size.width,
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  bottom: -25,
+                  right: 10,
+                  child: Image.asset(
+                    'assets/car.png',
+                    width: 150,
+                    height: 100,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              );
-            },
-          ),
-          title: Text(
-            'Feedback',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSecondary),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          iconTheme:
-              IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
-          titleTextStyle:
-              TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
+                Positioned(
+                  right: 30,
+                  top: 30,
+                  child: Image.asset(
+                    'assets/image.png',
+                    height: 38,
+                  ),
+                ),
+                Positioned(
+                  top: 30,
+                  left: 30,
+                  child: IconButton(
+                    onPressed: () => {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Home(
+                            myIndex: 2,
+                          ),
+                        ),
+                      ),
+                    },
+                    icon: Image.asset(
+                      'assets/go_back.png',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 50),
+            Text(
+              'put ur feedback here',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(25.0),
+              child: TextField(
                 controller: _feedbackController,
                 decoration: InputDecoration(
                   labelText: 'Your Feedback',
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary),
+                  ),
                   labelStyle: TextStyle(
                       color: Theme.of(context).colorScheme.onSecondary),
-                  focusedBorder: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.onPrimary),
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 maxLines: 4,
                 style:
-                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                    TextStyle(color: Theme.of(context).colorScheme.onSecondary),
               ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _submitFeedback,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 110, vertical: 17),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text(
-                  'Submit Feedback',
-                  style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSecondary),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: _submitFeedback,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 110, vertical: 17),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const Spacer(),
-              ElevatedButton(
+              child: Text(
+                'Submit Feedback',
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSecondary),
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
                 onPressed: _launchEmail,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -108,11 +147,13 @@ class _MyFeedbackState extends State<MyFeedback> {
                 ),
                 child: Text(
                   'Contact Us',
-                  style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSecondary),
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.onSecondary),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),

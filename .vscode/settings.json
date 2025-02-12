@@ -7,5 +7,10 @@
   // Remove from file watching
   "files.watcherExclude": {
     "**/.fvm": true
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#520E50",
+    "titleBar.activeBackground": "#721470",
+    "titleBar.activeForeground": "#FEFBFE"
   }
 }

@@ -1,7 +1,8 @@
 import 'package:accident_tracker/App/account/update_password_page.dart';
 import 'package:accident_tracker/App/account/edit_profile_page.dart';
+import 'package:accident_tracker/App/auth/auth_page.dart';
 import 'package:accident_tracker/App/main/loading_page.dart';
-import 'package:accident_tracker/App/main/welcome_page.dart';
+import 'package:accident_tracker/flavors.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -21,92 +22,115 @@ class Account extends StatefulWidget {
 class _AccountState extends State<Account> {
   final GlobalKey _editProfile = GlobalKey();
   final GlobalKey _changePassword = GlobalKey();
+  bool isDuty = false;
+  bool loaded = false;
+  Object? unitId;
 
   @override
   void initState() {
     super.initState();
+    F.appFlavor == Flavor.unit ? _loadUnitSettings() : null;
     _createTutorial();
   }
 
+  Future<void> _loadUnitSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _loadDutySettings();
+    setState(() {
+      unitId = prefs.getString('unit_Id') ?? false;
+      loaded = true;
+    });
+  }
+
+  Future<void> _loadDutySettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDuty = prefs.getBool('unit_duty') ?? false;
+    });
+  }
+
+  Future<void> _saveDutySettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('unit_duty', isDuty);
+  }
+
   void _createTutorial() async {
-    void createTutorial() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool? hasShownTutorial = prefs.getBool('hasShownTutorial2');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? hasShownTutorial = prefs.getBool('hasShownTutorial2');
 
-      if (hasShownTutorial != true) {
-        final targets = [
-          TargetFocus(
-            identify: 'Edit Profile',
-            keyTarget: _editProfile,
-            enableOverlayTab: true,
-            alignSkip: Alignment.bottomCenter,
-            contents: [
-              TargetContent(
-                align: ContentAlign.bottom,
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(height: 15),
-                    Text(
-                      "Edit Profile",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 20.0),
+    if (hasShownTutorial != true) {
+      final targets = [
+        TargetFocus(
+          identify: 'Edit Profile',
+          keyTarget: _editProfile,
+          enableOverlayTab: true,
+          alignSkip: Alignment.bottomCenter,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(height: 15),
+                  Text(
+                    "Edit Profile",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 20.0),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 10.0),
+                    child: Text(
+                      "Edit your profile information from here.",
+                      style: TextStyle(color: Colors.white),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 10.0),
-                      child: Text(
-                        "Edit your profile information from here.",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          TargetFocus(
-            identify: 'Change Password',
-            keyTarget: _changePassword,
-            enableOverlayTab: true,
-            alignSkip: Alignment.bottomCenter,
-            contents: [
-              TargetContent(
-                align: ContentAlign.bottom,
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(height: 65),
-                    Text(
-                      "Change Password",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 20.0),
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: 'Change Password',
+          keyTarget: _changePassword,
+          enableOverlayTab: true,
+          alignSkip: Alignment.bottomCenter,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(height: 65),
+                  Text(
+                    "Change Password",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 20.0),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 10.0),
+                    child: Text(
+                      "You can change your password from a link that will be sent to your email.",
+                      style: TextStyle(color: Colors.white),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 10.0),
-                      child: Text(
-                        "You can change your password from a link that will be sent to your email.",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ];
+            ),
+          ],
+        ),
+      ];
 
-        final tutorial = TutorialCoachMark(targets: targets);
-        await Future.delayed(const Duration(milliseconds: 500));
-        tutorial.show(context: context);
+      final tutorial = TutorialCoachMark(targets: targets);
+      await Future.delayed(const Duration(milliseconds: 500));
+      tutorial.show(context: context);
 
-        await prefs.setBool('hasShownTutorial2', true);
-      }
+      await prefs.setBool('hasShownTutorial2', true);
     }
   }
 
@@ -200,6 +224,59 @@ class _AccountState extends State<Account> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
+                  F.appFlavor == Flavor.unit
+                      ? Container(
+                          margin: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            borderRadius: BorderRadius.circular(11.0),
+                          ),
+                          child: ListTile(
+                            tileColor: Colors.transparent,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20.0, vertical: 6.0),
+                            leading: loaded
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    child: Container(
+                                      width: 30,
+                                      height: 30,
+                                      color: isDuty
+                                          ? const Color.fromARGB(255, 0, 255, 8)
+                                          : const Color.fromARGB(
+                                              255, 255, 17, 0),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 30,
+                                    height: 30,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                loaded
+                                    ? Text(
+                                        'U${unitId.toString()}',
+                                      )
+                                    : const SizedBox(),
+                                loaded
+                                    ? Switch(
+                                        value: isDuty,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            isDuty = value;
+                                          });
+                                          _saveDutySettings();
+                                        },
+                                      )
+                                    : Container()
+                              ],
+                            ),
+                          ),
+                        )
+                      : const SizedBox(),
                   const SizedBox(height: 10),
                   Container(
                     margin: const EdgeInsets.all(6),
@@ -232,34 +309,38 @@ class _AccountState extends State<Account> {
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    margin: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(11.0),
-                    ),
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const UpdatePassword(),
-                          ),
-                        );
-                      },
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 6.0),
-                      leading: Image.asset('assets/change password.png'),
-                      title: Center(
-                        child: Text(
-                          key: _changePassword,
-                          'Change Password',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
+                      margin: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        borderRadius: BorderRadius.circular(11.0),
                       ),
-                    ),
-                  ),
+                      child: FirebaseAuth.instance.currentUser!.emailVerified
+                          ? ListTile(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const UpdatePassword(),
+                                  ),
+                                );
+                              },
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 6.0),
+                              leading:
+                                  Image.asset('assets/change password.png'),
+                              title: Center(
+                                child: Text(
+                                  key: _changePassword,
+                                  'Change Password',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container()),
                   const SizedBox(height: 10),
                 ] else
                   const Text(
@@ -267,7 +348,6 @@ class _AccountState extends State<Account> {
                     style: TextStyle(fontSize: 18),
                   ),
                 const Spacer(),
-                // Log Out ListTile
                 Container(
                   margin: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -276,14 +356,14 @@ class _AccountState extends State<Account> {
                   ),
                   child: ListTile(
                     onTap: () async {
-                      await FirebaseAuth.instance.signOut();
-                      await GoogleSignIn().signOut();
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const WelcomePage(),
+                          builder: (context) => const AuthPage(),
                         ),
                       );
+                      await FirebaseAuth.instance.signOut();
+                      await GoogleSignIn().signOut();
                     },
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20.0, vertical: 1.0),

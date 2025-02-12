@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../main/navigation_bar.dart';
 
 class Contact extends StatefulWidget {
@@ -16,7 +15,6 @@ class _ContactState extends State<Contact> {
   void initState() {
     super.initState();
   }
-
 
   Future<void> launchURL(Uri updateUrl) async {
     try {

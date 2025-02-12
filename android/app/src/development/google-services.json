@@ -1,0 +1,171 @@
+{
+  "project_info": {
+    "project_number": "584287843034",
+    "firebase_url": "https://ivision-1a692-default-rtdb.firebaseio.com",
+    "project_id": "ivision-1a692",
+    "storage_bucket": "ivision-1a692.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584287843034:android:fbe4881bdcb6295aad2be3",
+        "android_client_info": {
+          "package_name": "com.example.accident_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584287843034-e8r6n51aoncfcndofi6314d2qa648rlo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.accident_tracker",
+            "certificate_hash": "393364629e28ab27d2ab0fdeb94d7bb26d8ae6cb"
+          }
+        },
+        {
+          "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACwVbpFmGfSjHCg9eb6j-nMFhlTJB7z7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "584287843034-04o87doo624anrgjntooai00rboma2gn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.accidentTracker"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584287843034:android:1e21f921fc677630ad2be3",
+        "android_client_info": {
+          "package_name": "com.example.accident_tracker_dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACwVbpFmGfSjHCg9eb6j-nMFhlTJB7z7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "584287843034-04o87doo624anrgjntooai00rboma2gn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.accidentTracker"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584287843034:android:ac643319a6027638ad2be3",
+        "android_client_info": {
+          "package_name": "com.example.accident_tracker_stg"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACwVbpFmGfSjHCg9eb6j-nMFhlTJB7z7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "584287843034-04o87doo624anrgjntooai00rboma2gn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.accidentTracker"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584287843034:android:8ab033c355553767ad2be3",
+        "android_client_info": {
+          "package_name": "com.example.accident_tracker_units"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584287843034-fv2e9veuegobe3l2k6m3d777src3uedd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.accident_tracker_units",
+            "certificate_hash": "393364629e28ab27d2ab0fdeb94d7bb26d8ae6cb"
+          }
+        },
+        {
+          "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACwVbpFmGfSjHCg9eb6j-nMFhlTJB7z7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584287843034-28nmug4lrol0ijoj5067c51tct67h7sc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "584287843034-04o87doo624anrgjntooai00rboma2gn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.accidentTracker"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

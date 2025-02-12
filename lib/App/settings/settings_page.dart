@@ -1,3 +1,4 @@
+import 'package:accident_tracker/App/settings/language_page.dart';
 import 'package:accident_tracker/App/settings/privacy_policy_page.dart';
 import 'package:accident_tracker/config/routes/theme_provider.dart';
 import 'package:accident_tracker/App/settings/about_us_page.dart';
@@ -22,17 +23,19 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   bool isSwitched = false;
+  bool loaded = false;
 
   @override
   void initState() {
-    super.initState();
     _loadSettings();
+    super.initState();
   }
 
   Future<void> _loadSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       isSwitched = prefs.getBool('dark_mode') ?? false;
+      loaded = true;
     });
   }
 
@@ -57,6 +60,7 @@ class _SettingsState extends State<Settings> {
         return false;
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(
             'Settings',
@@ -67,17 +71,19 @@ class _SettingsState extends State<Settings> {
         ),
         backgroundColor: backgroundColor,
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildDarkModeSwitch(textColor),
-                  _buildMenuOptions(textColor),
-                  _buildDeveloperContact(textColor),
-                ],
-              );
-            },
+          child: SingleChildScrollView(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDarkModeSwitch(textColor),
+                    _buildMenuOptions(textColor),
+                    _buildDeveloperContact(textColor),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -104,19 +110,21 @@ class _SettingsState extends State<Settings> {
                 'Dark Mode',
                 style: TextStyle(color: textColor),
               ),
-              Switch(
-                value: isSwitched,
-                onChanged: (value) {
-                  setState(() {
-                    isSwitched = value;
-                  });
-                  if (mounted) {
-                    Provider.of<ThemeProvider>(context, listen: false)
-                        .toggleTheme();
-                  }
-                  _saveSettings();
-                },
-              ),
+              loaded
+                  ? Switch(
+                      value: isSwitched,
+                      onChanged: (value) {
+                        setState(() {
+                          isSwitched = value;
+                        });
+                        if (mounted) {
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                        }
+                        _saveSettings();
+                      },
+                    )
+                  : Container()
             ],
           ),
         ),
@@ -129,6 +137,8 @@ class _SettingsState extends State<Settings> {
       children: [
         _buildMenuItem(
             Icons.star_border, 'Rate App', const RatingPage(), textColor),
+        _buildMenuItem(
+            Icons.language, 'Language Select', const LanguagePage(), textColor),
         _buildMenuItem(
             Icons.share_outlined, 'Share App', const ShareApp(), textColor),
         _buildMenuItem(Icons.lock_outlined, 'Privacy Policy',

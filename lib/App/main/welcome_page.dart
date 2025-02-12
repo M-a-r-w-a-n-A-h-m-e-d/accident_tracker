@@ -1,7 +1,7 @@
-import 'dart:io';
-import 'package:accident_tracker/App/auth/auth_page.dart';
 import 'package:accident_tracker/App/auth/sign_up_page.dart';
+import 'package:accident_tracker/App/auth/auth_page.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});

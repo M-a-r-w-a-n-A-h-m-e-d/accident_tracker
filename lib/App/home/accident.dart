@@ -178,7 +178,7 @@ class _AccidentPageState extends State<AccidentPage> {
               ListTile(
                 title: Text('Accident ID: ${item['pk']}'),
               ),
-              // Image.memory(decodedImage),
+              Image.memory(decodedImage),
               Text('Longitude: ${item['longitude']}'),
               Text('Latitude: ${item['latitude']}'),
               Text('Is Accident: ${item['is_accident']}'),
@@ -205,7 +205,7 @@ class _AccidentPageState extends State<AccidentPage> {
                 );
               },
             )),
-        body: const Center(child: Text('Invalid image data')),
+        body: Center(child: Text('Invalid data Error: $e')),
       );
     }
   }

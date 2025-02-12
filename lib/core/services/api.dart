@@ -6,10 +6,10 @@ class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
 
   @override
-  _DataScreenState createState() => _DataScreenState();
+  DataScreenState createState() => DataScreenState();
 }
 
-class _DataScreenState extends State<DataScreen> {
+class DataScreenState extends State<DataScreen> {
   final String url = "https://api31-six.vercel.app/rest/";
   List<dynamic>? data;
   bool isLoading = true;

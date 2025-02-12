@@ -1,16 +1,21 @@
+import 'dart:async';
+import 'dart:developer';
+import 'package:accident_tracker/flavors.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:accident_tracker/App/home/report_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:vibration/vibration.dart';
-import 'package:flutter/material.dart';
-import '../main/navigation_bar.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:vibration/vibration.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import '../../core/services/database.dart';
+import '../main/navigation_bar.dart';
 import 'accident.dart';
+import 'dart:convert';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,33 +32,121 @@ class _HomePageState extends State<HomePage> {
   String? errorMessage;
   final GlobalKey _map = GlobalKey();
   final GlobalKey _report = GlobalKey();
+  Timer? _timer;
+  Object? unitId;
+  bool loaded = false;
+  bool isDuty = false;
 
-  Future<void> fetchData() async {
+  Future<void> _loadUnitSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _loadDutySettings();
+    setState(() {
+      unitId = prefs.getString('unit_Id') ?? false;
+      loaded = true;
+    });
+  }
+
+  Future<void> _loadDutySettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDuty = prefs.getBool('unit_duty') ?? false;
+    });
+  }
+
+  // Fetch data every 5 seconds
+  Future<void> fetchData(bool fromApi) async {
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        setState(() {
-          final decodedData = json.decode(response.body);
-          if (decodedData is List) {
-            data = decodedData;
-          } else if (decodedData is Map) {
-            data = [decodedData];
-          }
-          isLoading = false;
-        });
+      if (fromApi) {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          setState(() {
+            final decodedData = json.decode(response.body);
+            if (decodedData is List) {
+              data = decodedData;
+            } else if (decodedData is Map) {
+              data = [decodedData];
+            }
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            errorMessage = 'Failed to load data: ${response.statusCode}';
+            isLoading = false;
+          });
+        }
       } else {
+        try {
+          var _databaseReference = await loaded
+              ? FirebaseDatabase.instance.ref('/$unitId')
+              : FirebaseDatabase.instance.ref('/');
+          // Fetch data once
+          DataSnapshot snapshot = await _databaseReference.get();
+          // Log the value of the snapshot
+          log(snapshot.value.toString());
+          // Update the data (this is optional, but useful for processing data)
+          setState(() {
+            isLoading = false; // Stop loading once data is fetched
+          });
+        } catch (e) {
+          log(e.toString());
+        }
+        // Create a reference to the database (can replace with a specific path if needed)
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
-          errorMessage = "Failed to load data: ${response.statusCode}";
+          errorMessage = "Error: $e";
           isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        errorMessage = "Error: $e";
-        isLoading = false;
-      });
-      debugPrint("Fetch error: $e");
     }
+  }
+
+  Future<void> updateUnitLocation(
+      int unitId,
+      double newLat,
+      double newLong,
+      double cameraLat,
+      double cameraLong,
+      bool onDuty,
+      bool needEmergency) async {
+    DatabaseReference unitRef = FirebaseDatabase.instance.ref('units/$unitId');
+
+    try {
+      await unitRef.update({
+        'unit_location/lat': newLat,
+        'unit_location/long': newLong,
+        'camera_location/lat': cameraLat,
+        'camera_location/long': cameraLong,
+        'on_duty': isDuty,
+        'need_emergency': needEmergency,
+      });
+      log('Unit data updated successfully');
+    } catch (e) {
+      log('Error updating data: $e');
+    }
+  }
+
+  void startFetchingData() {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      fetchData(true);
+      F.appFlavor == Flavor.unit ? fetchData(false) : null;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnitSettings();
+    _createTutorial();
+    fetchData(true);
+    startFetchingData();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _createTutorial() async {
@@ -118,7 +211,7 @@ class _HomePageState extends State<HomePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Text(
-                      "Here you can report an accident and help save people.",
+                      "Here you can report an accident and help to save people.",
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface),
                     ),
@@ -136,13 +229,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _createTutorial();
-    fetchData();
-  }
-
   void vibrating() async {
     Vibration.vibrate();
     await Future.delayed(const Duration(milliseconds: 500));
@@ -151,7 +237,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter data for accidents with IsAcc == true
     var filteredData =
         data?.where((accident) => accident['is_accident'] == true).toList();
 
@@ -223,26 +308,14 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                       icon: const Icon(Icons.report_gmailerrorred_outlined),
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: const Color.fromARGB(255, 255, 17, 0),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: Text(
-                  'Location',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary),
-                ),
-              ),
-              Container(
+              SizedBox(
                 key: _map,
-                height: 450,
-                margin: const EdgeInsets.all(10),
+                height: 500,
                 child: FlutterMap(
                   options: const MapOptions(
                     initialCenter: LatLng(30.045704, 31.178611),
@@ -251,90 +324,109 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
                     ),
                     MarkerLayer(
                       markers: [
-                        Marker(
-                          width: 80.0,
-                          height: 80.0,
-                          point: const LatLng(30.045699, 31.178588),
-                          child: IconButton(
-                            highlightColor: Colors.transparent,
-                            onPressed: () {},
-                            icon: const Icon(Icons.location_on, size: 40),
-                            color: Colors.red,
+                        for (var i in filteredData ?? [])
+                          Marker(
+                            width: 40,
+                            height: 40,
+                            point: LatLng(i['latitude'], i['longitude']),
+                            child: IconButton(
+                              highlightColor: Colors.transparent,
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AccidentPage(
+                                      currentAccident: i['pk'],
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.location_on,
+                                size: 30,
+                              ),
+                              color: Colors.red,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : errorMessage != null
-                      ? Center(child: Text(errorMessage!))
-                      : filteredData != null && filteredData.isNotEmpty
-                          ? GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                              ),
-                              itemCount: filteredData.length,
-                              itemBuilder: (context, index) {
-                                return Card(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                  borderOnForeground: false,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 20),
+              F.appFlavor == Flavor.development
+                  ? isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : errorMessage != null
+                          ? Center(child: Text(errorMessage!))
+                          : filteredData != null && filteredData.isNotEmpty
+                              ? GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
                                   ),
-                                  elevation: 4,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .onSecondary,
-                                        padding: const EdgeInsets.all(5),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
+                                  itemCount: filteredData.length,
+                                  itemBuilder: (context, index) {
+                                    return Card(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
+                                      borderOnForeground: false,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                      onPressed: () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AccidentPage(
-                                              currentAccident:
-                                                  filteredData[index]['pk'],
+                                      elevation: 4,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            enableFeedback: false,
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .onSecondary,
+                                            padding: const EdgeInsets.all(5),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                           ),
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Location',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                          onPressed: () {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    AccidentPage(
+                                                  currentAccident:
+                                                      filteredData[index]['pk'],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Location',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
-                                        textAlign: TextAlign.center,
                                       ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            )
-                          : const Center(
-                              child: Text('No Accidents'),
-                            ),
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text('No Accidents'),
+                                )
+                  : const SizedBox(),
             ],
           ),
         ),

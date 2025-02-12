@@ -1,64 +1,157 @@
-import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
+import '../../flavors.dart';
+import 'dart:developer';
 
-class DataBase extends StatelessWidget {
-  const DataBase({super.key});
+class DataBase {
+  // Constructor with named parameters
+  DataBase({
+    this.name,
+    required this.email,
+    required this.password,
+    this.id,
+  });
+
+  final int? id;
+  final String? name;
+  final String email;
+  final String password;
+
+  PostgreSQLConnection? _connection;
 
   Future<void> connection() async {
-    final connection = PostgreSQLConnection(
-      'junction.proxy.rlwy.net',//host
-      58962,//port
-      'railway',//database name
+    // Initialize the database connection
+    _connection = PostgreSQLConnection(
+      'roundhouse.proxy.rlwy.net', // host
+      57698, // port
+      'railway', // database name
       username: 'postgres',
-      password: 'NoDfSEBGShvkTpcUZIUGMtzgPxMccDqc',
+      password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
     );
 
     try {
-      await connection.open();
+      // Open the connection
+      await _connection!.open();
 
-      await insertData(connection, 2, 'New Name', 100);
+      // Get the table name based on the flavor
+      String table = _getTableForFlavor();
 
-      List<List<dynamic>> result = await connection.query(
-        'SELECT * FROM a_table WHERE id = @id',
-        substitutionValues: {'id': 2},
-      );
+      // Create the tables
+      await createTables();
 
-      if (result.isNotEmpty) {
-        print(result.first.asMap());
-      } else {
-        print('No results found for the given ID.');
+      // Insert the user data
+      await insertUserData(table);
+    } catch (e) {
+      log("Error connecting to the database: $e");
+    } finally {
+      // Ensure the connection is closed
+      await _connection?.close();
+    }
+  }
+
+  String _getTableForFlavor() {
+    // Return the appropriate table name based on the app flavor
+    return F.appFlavor == Flavor.unit
+        ? 'units'
+        : F.appFlavor == Flavor.production
+            ? 'users'
+            : F.appFlavor == Flavor.staging
+                ? 'testers'
+                : 'developers';
+  }
+
+  Future<void> createTables() async {
+    try {
+      // List of tables to create
+      List<String> tables = ['units', 'users', 'testers', 'developers'];
+      if (email.isEmpty && password.isEmpty) {
+        _connection = PostgreSQLConnection(
+          'roundhouse.proxy.rlwy.net', // host
+          57698, // port
+          'railway', // database name
+          username: 'postgres',
+          password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
+        );
+        await _connection!.open();
+      }
+
+      // Iterate through each table and create if not exists
+      for (String table in tables) {
+        await _connection!.query(
+          'CREATE TABLE IF NOT EXISTS $table (id SERIAL PRIMARY KEY, username TEXT NOT NULL CHECK (LENGTH(username) >= 3), email TEXT UNIQUE NOT NULL, user_password TEXT NOT NULL)',
+        );
       }
     } catch (e) {
-      print("Error connecting to the database: $e");
+      log("Error creating tables: $e");
     } finally {
-      await connection.close();
+      if (email.isEmpty && password.isEmpty) {
+        await _connection?.close();
+      }
     }
   }
 
-  Future<void> insertData(
-    PostgreSQLConnection connection,
-    int id,
-    String name,
-    int totals,
-  ) async {
+  Future<List<List>?> searchWithEmail(String email) async {
     try {
-      await connection.query(
-        'INSERT INTO a_table (id, name, totals,totalss) VALUES (@id, @name, @totals)',
-        substitutionValues: {'id': id, 'name': name, 'totals': totals},
+      _connection = PostgreSQLConnection(
+        'roundhouse.proxy.rlwy.net', // host
+        57698, // port
+        'railway', // database name
+        username: 'postgres',
+        password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
       );
 
-      print('Data inserted successfully.');
+      await _connection!.open();
+
+      // Get the table name based on the flavor
+      String table = _getTableForFlavor();
+
+      // Query the database for the user with the given email
+      List<List<dynamic>> result = await _connection!.query(
+        'SELECT * FROM $table WHERE email = @email',
+        substitutionValues: {'email': email},
+      );
+
+      return result;
     } catch (e) {
-      print("Error inserting data: $e");
+      log('error searching for email: $e');
     }
+
+    await _connection?.close();
+
+    return null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    connection();
+  Future<void> insertUserData(String table) async {
+    try {
+      // Check if the user already exists
+      List<List<dynamic>> result;
+      if (id != null) {
+        result = await _connection!.query(
+          'SELECT * FROM $table WHERE id = @id',
+          substitutionValues: {'id': id},
+        );
+      } else {
+        result = await _connection!.query(
+          'SELECT * FROM $table WHERE email = @email',
+          substitutionValues: {'email': email},
+        );
+      }
 
-    return const Scaffold(
-      body: Center(child: Text('Database Connection Example')),
-    );
+      // If the user doesn't exist, insert new data
+      if (result.isEmpty) {
+        await _connection!.query(
+          'INSERT INTO $table (username, email, user_password) VALUES (@name, @email, @password)',
+          substitutionValues: {
+            'name': name,
+            'email': email,
+            'password': password,
+          },
+        );
+        log('User inserted successfully into table $table.');
+      } else {
+        log('User with ID $id already exists in table $table.');
+      }
+    } catch (e) {
+      log("Error inserting data into table $table: $e");
+    }
   }
 }

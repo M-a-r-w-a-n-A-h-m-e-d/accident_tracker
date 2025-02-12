@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../common/Widgets/text_present.dart';
 import '../main/navigation_bar.dart';
 
 class AboutUsPage extends StatefulWidget {
@@ -11,7 +12,6 @@ class AboutUsPage extends StatefulWidget {
 }
 
 class _AboutUsPageState extends State<AboutUsPage> {
-
   @override
   void initState() {
     super.initState();
@@ -60,64 +60,33 @@ class _AboutUsPageState extends State<AboutUsPage> {
             child: Container(
               margin: const EdgeInsets.only(left: 13, top: 10),
               child: Column(
+                spacing: 20,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 25),
-                  Text(
-                    'We are a group of programmers consisting of 8 people committed to an educational body (Misr International Academy). Therefore, we were assigned a graduation project consisting of integrated systems and artificial intelligence.',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Our Team',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Our mission is to develop reliable and efficient solutions that can quickly identify and respond to accidents, ultimately saving lives and reducing the impact of road incidents.',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Why Choose Us?',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Expertise: With backgrounds in software development, machine learning, and automotive engineering, our team is equipped to tackle the complexities of accident detection.',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Innovation: We continuously strive to stay ahead of the curve, integrating the latest technologies to improve our systems.',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    'Commitment: Our dedication to safety drives us to provide solutions that make a difference in real-world scenarios.',
-                    style: TextStyle(
-      fontSize: 20.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
-                  ),
+                  textPresent(
+                      context: context,
+                      mainText: 'About Us',
+                      subText:
+                          'We are a group of programmers consisting of 8 people committed to an educational body (Misr International Academy). Therefore, we were assigned a graduation project consisting of integrated systems and artificial intelligence.',
+                      icon: const Icon(
+                        Icons.chat,
+                      )),
+                  textPresent(
+                      context: context,
+                      mainText: 'Our Team',
+                      subText:
+                          'Our mission is to develop reliable and efficient solutions that can quickly identify and respond to accidents, ultimately saving lives and reducing the impact of road incidents.',
+                      icon: const Icon(
+                        Icons.people,
+                      )),
+                  textPresent(
+                      context: context,
+                      mainText: 'Why Choose Us?',
+                      subText:
+                          'Expertise: With backgrounds in software development, machine learning, and automotive engineering, our team is equipped to tackle the complexities of accident detection.\nInnovation: We continuously strive to stay ahead of the curve, integrating the latest technologies to improve our systems.\nCommitment: Our dedication to safety drives us to provide solutions that make a difference in real-world scenarios.',
+                      icon: const Icon(
+                        Icons.star,
+                      )),
                 ],
               ),
             ),

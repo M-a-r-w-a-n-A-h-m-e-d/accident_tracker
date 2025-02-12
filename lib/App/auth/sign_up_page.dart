@@ -3,6 +3,7 @@ import 'package:accident_tracker/App/settings/privacy_policy_page.dart';
 import 'package:accident_tracker/App/auth/sign_in_page.dart';
 import 'package:accident_tracker/App/settings/terms_page.dart';
 import 'package:accident_tracker/common/Widgets/my_textfield.dart';
+import 'package:accident_tracker/core/services/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../common/Widgets/passText_customWidget.dart';
@@ -66,7 +67,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-
+        DataBase(name: name,email: email,password: password).connection();
       User? user = userCredential.user;
       if (user != null) {
         await user.updateDisplayName(name);

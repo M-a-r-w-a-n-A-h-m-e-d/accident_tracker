@@ -13,13 +13,6 @@ class RatingPage extends StatefulWidget {
 class _RatingPageState extends State<RatingPage> {
   double _rating = 0;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-
-
   void sendRating() {
     if (_rating > 0) {
       // Handle rating submission logic
@@ -37,7 +30,6 @@ class _RatingPageState extends State<RatingPage> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -104,13 +96,21 @@ class _RatingPageState extends State<RatingPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 80),
+              Text(
+                'please put rating of 5',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
                 'Rating: $_rating',
                 style: TextStyle(
-      fontSize: 24.0,
-      color: Theme.of(context).colorScheme.onSecondary,
-    ),
+                  fontSize: 24.0,
+                  color: Theme.of(context).colorScheme.onSecondary,
+                ),
               ),
               AnimatedRatingStars(
                 onChanged: (rating) {
@@ -141,7 +141,8 @@ class _RatingPageState extends State<RatingPage> {
                 child: Text(
                   'Send Rating',
                   style: TextStyle(
-                      fontSize: 18, color: Theme.of(context).colorScheme.onSecondary),
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.onSecondary),
                 ),
               ),
             ],

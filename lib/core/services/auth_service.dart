@@ -1,20 +1,17 @@
-import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:developer';
 
 class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
-    print('Starting Google Sign-In...');
 
     final GoogleSignIn googleSignIn =
         GoogleSignIn(scopes: ['email', 'profile']);
-
     try {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
-        print('Sign-in was canceled by the user.');
         return null; // User canceled the sign-in
       }
 
@@ -32,17 +29,14 @@ class AuthService {
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
 
-      print('User Signed In: ${userCredential.user?.providerData}');
 
       return userCredential;
     } catch (error) {
       // Catch any errors and print them
-      print('Error during Google Sign-In: $error');
+      log('Error during Google Sign-In: $error');
       return null;
     }
   }
-
-
 
   static Future<void> signInWithFacebook() async {
     

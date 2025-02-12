@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:accident_tracker/App/auth/auth_page.dart';
 import 'package:accident_tracker/App/main/loading_page.dart';
 import 'package:accident_tracker/App/auth/sign_up_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -107,7 +106,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const AuthPage(),
+                              builder: (context) => const SignUp(),
                             ),
                           ),
                         },
