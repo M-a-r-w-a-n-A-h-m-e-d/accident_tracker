@@ -299,7 +299,7 @@ class _AccountState extends State<Account> {
                       title: Center(
                         child: Text(
                           key: _editProfile,
-                          "Edit Profile",
+                          'Edit Profile',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                           ),

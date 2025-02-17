@@ -3,9 +3,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer';
 
+import 'database.dart';
+
 class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
-
     final GoogleSignIn googleSignIn =
         GoogleSignIn(scopes: ['email', 'profile']);
     try {
@@ -29,17 +30,20 @@ class AuthService {
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
 
+      DataBase(
+              name: userCredential.user!.displayName ?? '',
+              email: userCredential.user!.providerData[0].email ?? '',
+              password: 'google')
+          .connection();
 
       return userCredential;
     } catch (error) {
-      // Catch any errors and print them
       log('Error during Google Sign-In: $error');
       return null;
     }
   }
 
   static Future<void> signInWithFacebook() async {
-    
     final LoginResult result = await FacebookAuth.instance.login();
 
     if (result.status == LoginStatus.success && result.accessToken != null) {

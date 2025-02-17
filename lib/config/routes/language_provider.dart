@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,13 +8,13 @@ class LanguageProvider with ChangeNotifier {
   bool loaded = false;
 
   LanguageProvider() {
-    _loadSettings(); // Load the language preference on initialization
+    loadSettings(); // Load the language preference on initialization
   }
 
   Locale get currentLocale => _currentLocale;
 
   // Load the stored language setting and update the locale
-  Future<void> _loadSettings() async {
+  Future<void> loadSettings() async {
     bool isArabic =
         await SettingsStorage.loadBoolSetting('isArabic', defaultValue: false);
     _currentLocale = isArabic ? const Locale('ar') : const Locale('en');
@@ -21,20 +23,25 @@ class LanguageProvider with ChangeNotifier {
   }
 
   // Toggle the language and save the updated setting
-  void toggleLanguage() async {
-    bool isArabic =
-        _currentLocale.languageCode == 'en'; // Toggle between 'en' and 'ar'
-    _currentLocale = isArabic ? const Locale('ar') : const Locale('en');
-    await SettingsStorage.saveBoolSetting(
-        'isArabic', isArabic); // Save the updated language setting
-    notifyListeners(); // Notify listeners about the language change
+  void toggleLanguage(String locale) async {
+    // Set the new locale based on the passed parameter
+    _currentLocale = locale == 'ar' ? const Locale('ar') : const Locale('en');
+
+    // Determine if the selected language is Arabic
+    bool isArabic = locale == 'ar';
+
+    // Save the language preference in SharedPreferences
+    await SettingsStorage.saveBoolSetting('isArabic', isArabic);
+    log(isArabic.toString());
+    // Notify listeners that the locale has been changed
+    notifyListeners();
   }
 }
 
 class SettingsStorage {
   // Load a boolean value from SharedPreferences
-/*************  ✨ Codeium Command ⭐  *************/
-/******  6209654f-80d4-4e0d-ad14-e19bb9c24be9  *******/
+
+
   static Future<bool> loadBoolSetting(String key,
       {bool defaultValue = false}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

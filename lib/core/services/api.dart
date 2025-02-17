@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,38 +16,52 @@ class DataScreenState extends State<DataScreen> {
   bool isLoading = true;
   String? errorMessage;
 
-  Future<void> fetchData() async {
+  // Function to fetch data from a given URL
+  Future<void> fetchData(String url) async {
     try {
+      // Make an HTTP GET request to the provided URL
       final response = await http.get(Uri.parse(url));
+
+      // Check if the response status code is 200 (success)
       if (response.statusCode == 200) {
         setState(() {
+          // Decode the response body (JSON format)
           final decodedData = json.decode(response.body);
+
+          // Check if the decoded data is a List or Map and update 'data'
           if (decodedData is List) {
-            data = decodedData;
+            data = decodedData; // If it's a List, directly assign to data
           } else if (decodedData is Map) {
-            data = [decodedData];
+            data = [decodedData]; // If it's a Map, wrap it in a List
           }
+
+          // Set 'isLoading' to false to indicate loading is complete
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = "Failed to load data: ${response.statusCode}";
-          isLoading = false;
+          // If status code isn't 200, set an error message with status code
+          errorMessage = 'Failed to load data: ${response.statusCode}';
+          isLoading = false; // Set 'isLoading' to false
         });
       }
     } catch (e) {
+      // Catch any error during the fetch operation
       setState(() {
-        errorMessage = "Error: $e";
-        isLoading = false;
+        // Set the error message to show the exception
+        errorMessage = 'Error: $e';
+        isLoading = false; // Set 'isLoading' to false
       });
-      debugPrint("Fetch error: $e");
+
+      // Log the error for debugging
+      log('Fetch error: $e');
     }
   }
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchData(url);
   }
 
   @override

@@ -57,14 +57,14 @@ class _LoadingPageState extends State<LoadingPage> {
         return; // Exit if no user is logged in
       }
       // Fetch user data from the database
-      var result = await DataBase(email: user.providerData[0].email ?? '', password: 'password')
+      var result = await DataBase(
+              email: user.providerData[0].email ?? '', password: 'password')
           .searchWithEmail(user.providerData[0].email ?? '');
 
       if (result == null || result.isEmpty) {
         log('User data not found in the database');
         return; // Exit if no data found for the user
       }
-
     } catch (e) {
       log("Error: $e");
     }
@@ -87,10 +87,17 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
+  // Function to handle and request location and camera permissions
   Future<void> _permissionsHandler() async {
+    // Request location permission from the user
     final status = await Permission.location.request();
+
+    // Request camera permission from the user
     final status1 = await Permission.camera.request();
+
+    // Check if either the location or camera permission is not granted
     if (!status.isGranted || !status1.isGranted) {
+      // If permissions are denied, show an error message to the user
       _showErrorMessage(
           'Application will not work completely without permission.');
     }
@@ -212,25 +219,38 @@ class _LoadingPageState extends State<LoadingPage> {
     );
   }
 
+  // Function to launch a URL fetched from Firebase Remote Config
   Future<void> launchURL() async {
+    // Get the instance of FirebaseRemoteConfig
     final remoteConfig = FirebaseRemoteConfig.instance;
+
     try {
+      // Set configuration settings for fetching remote config
       await remoteConfig.setConfigSettings(
         RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 10),
-          minimumFetchInterval: Duration.zero,
+          fetchTimeout:
+              const Duration(seconds: 10), // Set fetch timeout to 10 seconds
+          minimumFetchInterval:
+              Duration.zero, // Set minimum fetch interval to zero (no cache)
         ),
       );
+
+      // Fetch and activate the remote config values
       await remoteConfig.fetchAndActivate();
 
+      // Retrieve the download link from Firebase Remote Config
       final String updateUrl = remoteConfig.getString('download_link');
 
+      // Check if the URL can be launched (e.g., it's a valid URL)
       if (await canLaunch(updateUrl)) {
+        // Launch the URL if it's valid
         await launch(updateUrl);
       } else {
+        // Show error message if the URL cannot be launched
         _showErrorMessage('Could not launch the provided URL.');
       }
     } catch (e) {
+      // Handle errors (e.g., network issues, Firebase fetch errors)
       _showErrorMessage('An error occurred while trying to launch the URL.');
     }
   }

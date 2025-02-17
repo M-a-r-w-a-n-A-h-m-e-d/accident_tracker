@@ -109,6 +109,9 @@ class DataBase {
         'SELECT * FROM $table WHERE email = @email',
         substitutionValues: {'email': email},
       );
+      if (result.isEmpty) {
+        insertUserData(table);
+      }
 
       return result;
     } catch (e) {
@@ -148,7 +151,9 @@ class DataBase {
         );
         log('User inserted successfully into table $table.');
       } else {
-        log('User with ID $id already exists in table $table.');
+        id != null
+            ? log('User with ID $id already exists in table $table.')
+            : log('User with email $email already exists in table $table.');
       }
     } catch (e) {
       log("Error inserting data into table $table: $e");

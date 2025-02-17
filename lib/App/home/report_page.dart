@@ -90,81 +90,126 @@ class _ReportAccidentState extends State<ReportAccident> {
           ),
           centerTitle: true,
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey, width: 2),
-                ),
-                child: _image == null
-                    ? ElevatedButton(
-                        onPressed: _pickImage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 110, vertical: 17),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
-                          ),
-                        ),
-                        child: const Text(
-                          'Upload Image',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      )
-                    : Image.file(File(_image!.path), fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15),
-                child: TextField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    border: const OutlineInputBorder(),
-                    labelStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSecondary),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.onSecondary),
-                    ),
-                  ),
-                  maxLines: 4,
+        body: Column(
+          spacing: 5,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Visibility(
+                visible: _image != null,
+                child: Text(
+                  'Review',
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSecondary),
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                )),
+            Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey, width: 2),
+                borderRadius: BorderRadius.circular(15),
               ),
-              const SizedBox(height: 20),
-              _image != null
+              child: _image == null
                   ? ElevatedButton(
-                      onPressed: () {
-                        if (_descriptionController.text.isEmpty) {
-                          _showEmptyFieldsDialog();
-                          return;
-                        }
-                      },
+                      onPressed: _pickImage,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 110, vertical: 17),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text(
-                        'Send Report',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      child: Text(
+                        'Take The Photo',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onSecondary),
                       ),
                     )
-                  : const SizedBox(height: 10),
-            ],
-          ),
+                  : Image.file(File(_image!.path), fit: BoxFit.cover),
+            ),
+            Visibility(
+              visible: _image != null,
+              child: ElevatedButton(
+                onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  'Retry',
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.onSecondary),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Text(
+                    'Description',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              margin: const EdgeInsets.only(left: 15, right: 15),
+              child: TextField(
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                  fillColor: Colors.grey.shade300,
+                  filled: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                        width: 0.7,
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                        width: 0.7,
+                        color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ),
+                maxLines: 4,
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSecondary),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _image != null
+                ? ElevatedButton(
+                    onPressed: () {
+                      if (_descriptionController.text.isEmpty) {
+                        _showEmptyFieldsDialog();
+                        return;
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 110, vertical: 17),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Send Report',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  )
+                : const SizedBox(height: 10),
+          ],
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),

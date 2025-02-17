@@ -1,5 +1,8 @@
+import 'package:accident_tracker/config/routes/language_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:country_flags/country_flags.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../common/Widgets/my_label.dart';
 import '../main/navigation_bar.dart';
@@ -13,6 +16,21 @@ class LanguagePage extends StatefulWidget {
 
 class _LanguagePageState extends State<LanguagePage> {
   String selectedLanguage = 'en';
+  bool loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedLanguage = (prefs.getBool('isArabic') ?? false) ? 'ar' : 'en';
+      loaded = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,56 +66,70 @@ class _LanguagePageState extends State<LanguagePage> {
               ],
             ),
             const SizedBox(height: 20),
-            myLabel(
-              context: context,
-              color: Theme.of(context).colorScheme.primary,
-              trailing: Radio(
-                value: 'en',
-                groupValue: selectedLanguage,
-                onChanged: (value) {
-                  setState(() {
-                    selectedLanguage = 'en';
-                  });
-                },
+            Visibility(
+              visible: loaded,
+              child: Column(
+                children: [
+                  myLabel(
+                    context: context,
+                    color: Theme.of(context).colorScheme.primary,
+                    trailing: Radio(
+                      value: 'en',
+                      groupValue: selectedLanguage,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedLanguage = 'en';
+                          Provider.of<LanguageProvider>(context, listen: false)
+                              .toggleLanguage(selectedLanguage);
+                        });
+                      },
+                    ),
+                    leading: CountryFlag.fromLanguageCode(
+                      'en-US',
+                      height: 30,
+                      width: 30,
+                      shape: const RoundedRectangle(8),
+                    ),
+                    msg: 'English',
+                    onTap: () {
+                      setState(() {
+                        selectedLanguage = 'en';
+                        Provider.of<LanguageProvider>(context, listen: false)
+                            .toggleLanguage(selectedLanguage);
+                      });
+                    },
+                  ),
+                  myLabel(
+                    context: context,
+                    color: Theme.of(context).colorScheme.primary,
+                    trailing: Radio(
+                      value: 'ar',
+                      groupValue: selectedLanguage,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedLanguage = 'ar';
+                          Provider.of<LanguageProvider>(context, listen: false)
+                              .toggleLanguage(selectedLanguage);
+                        });
+                      },
+                    ),
+                    leading: CountryFlag.fromLanguageCode(
+                      'ar-EG',
+                      height: 30,
+                      width: 30,
+                      shape: const RoundedRectangle(8),
+                    ),
+                    msg: 'Arabic',
+                    onTap: () {
+                      setState(() {
+                        selectedLanguage = 'ar';
+                        Provider.of<LanguageProvider>(context, listen: false)
+                            .toggleLanguage(selectedLanguage);
+                      });
+                    },
+                  ),
+                ],
               ),
-              leading: CountryFlag.fromLanguageCode(
-                'en-US',
-                height: 30,
-                width: 30,
-                shape: const RoundedRectangle(8),
-              ),
-              msg: 'English',
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'en';
-                });
-              },
-            ),
-            myLabel(
-              context: context,
-              color: Theme.of(context).colorScheme.primary,
-              trailing: Radio(
-                value: 'ar',
-                groupValue: selectedLanguage,
-                onChanged: (value) {
-                  setState(() {
-                    selectedLanguage = 'ar';
-                    
-                  });
-                },
-              ),
-              leading: CountryFlag.fromLanguageCode(
-                'ar-EG',
-                height: 30,
-                width: 30,
-                shape: const RoundedRectangle(8),
-              ),
-              msg: 'Arabic',
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'ar';
-                });
-              },
             ),
           ],
         ),

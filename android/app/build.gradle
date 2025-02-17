@@ -44,12 +44,12 @@ android {
         }
         staging {
             dimension "flavor-type"
-            applicationId "com.example.accident_tracker"
+            applicationId "com.example.accident_tracker_stg"
             resValue "string", "app_name", "Accident Detector Testing"
         }
         development {
             dimension "flavor-type"
-            applicationId "com.example.accident_tracker"
+            applicationId "com.example.accident_tracker_dev"
             resValue "string", "app_name", "Accident Detector Developers"
         }
     }
