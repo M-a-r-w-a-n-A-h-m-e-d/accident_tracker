@@ -1,7 +1,7 @@
 # 🚑 Accident Detector App
 
 ## 🌟 Overview
-The **Accident Detector App** is a powerful Flutter application designed to detect accidents using your device's sensors and provide immediate assistance. By leveraging advanced algorithms, it analyzes real-time data to ensure your safety and quickly notifies emergency contacts in case of an incident.
+The **Accident Detector App** is a powerful Flutter application designed to detect accidents and provide immediate assistance. By leveraging advanced algorithms, it analyzes real-time data to ensure your safety and quickly notifies emergency contacts in case of an incident.
 
 ## 🛠️ Features
 - **📊 Real-time Accident Detection**: Monitors accelerometer and gyroscope data for immediate accident alerts.
