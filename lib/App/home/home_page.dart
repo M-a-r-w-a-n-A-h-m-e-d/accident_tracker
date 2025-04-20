@@ -15,7 +15,6 @@ import 'package:latlong2/latlong.dart';
 import '../main/navigation_bar.dart';
 import 'accident.dart';
 import 'dart:convert';
-// import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,14 +27,18 @@ class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser;
   final String url = "https://api31-six.vercel.app/rest/";
   List<dynamic>? data;
-  bool isLoading = true;
   String? errorMessage;
   final GlobalKey _map = GlobalKey();
   final GlobalKey _report = GlobalKey();
   Timer? _timer;
   Object? unitId;
+  bool isLoading = true;
   bool loaded = false;
+   bool isShowen = false;
+  String alertData = '';
   bool isDuty = false;
+  int cameraId = -1;
+  List<dynamic> cameraLocation = [];
 
   Future<void> _loadUnitSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -45,6 +48,8 @@ class _HomePageState extends State<HomePage> {
       loaded = true;
     });
   }
+
+
 
   Future<void> _loadDutySettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -75,22 +80,7 @@ class _HomePageState extends State<HomePage> {
           });
         }
       } else {
-        try {
-          var _databaseReference = await loaded
-              ? FirebaseDatabase.instance.ref('/$unitId')
-              : FirebaseDatabase.instance.ref('/');
-          // Fetch data once
-          DataSnapshot snapshot = await _databaseReference.get();
-          // Log the value of the snapshot
-          log(snapshot.value.toString());
-          // Update the data (this is optional, but useful for processing data)
-          setState(() {
-            isLoading = false; // Stop loading once data is fetched
-          });
-        } catch (e) {
-          log(e.toString());
-        }
-        // Create a reference to the database (can replace with a specific path if needed)
+        fetchUnitData(int.parse(unitId.toString()));
       }
     } catch (e) {
       if (mounted) {
@@ -102,24 +92,140 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> updateUnitLocation(
-      int unitId,
-      double newLat,
-      double newLong,
-      double cameraLat,
-      double cameraLong,
-      bool onDuty,
-      bool needEmergency) async {
-    DatabaseReference unitRef = FirebaseDatabase.instance.ref('units/$unitId');
+  Future<void> fetchUnitData(int unitId) async {
+    try {
+      // Reference to the specific unit in the Firebase Database
+      var _databaseReference = FirebaseDatabase.instance.ref('/$unitId');
+
+      // Fetch data once from the database
+      DataSnapshot unitDataSnapshot = await _databaseReference.get();
+
+      // Log the fetched data for debugging purposes
+      log('Fetched Unit Data: ${unitDataSnapshot.value.toString()}');
+
+      // Check if the data is available and not null
+      if (unitDataSnapshot.exists) {
+        // Retrieve the data as a Map
+        Map<String, dynamic> unitData =
+            Map<String, dynamic>.from(unitDataSnapshot.value as Map);
+
+        // Extract the variables from the Map
+        var unitLocation = unitData['unit_location'] ?? {};
+        var lat = unitLocation['lat'] ?? 0.0;
+        var long = unitLocation['long'] ?? 0.0;
+        isDuty = unitData['on_duty'] ?? false;
+        cameraId = unitData['camera_id'] ?? 0;
+        cameraLocation = unitData['camera_location'] ?? [];
+        bool needEmergency = unitData['need_emergency'] ?? false;
+        var unitIdFromDb = unitData['unit_id'] ?? 0;
+
+        // Log the extracted variables for debugging purposes
+        log('Unit Location: Lat: $lat, Long: $long');
+        log('On Duty: $isDuty');
+        log('Camera ID: $cameraId');
+        log('Camera Location: $cameraLocation');
+        log('Need Emergency: $needEmergency');
+        log('Unit ID: $unitIdFromDb');
+        if ((cameraId != -1 && cameraLocation.isNotEmpty) && !isShowen) {
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent dismissing by tapping outside
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Go to Specific Camera'),
+                content: const Text(
+                  'You have been assigned to go to a specific camera location. Do you accept?',
+                ),
+                actions: [
+                  // Decline Button
+                  TextButton(
+                    onPressed: () {
+                      updateUnitLocation(int.parse(unitId.toString()));
+                      Navigator.pop(context); // Close the dialog
+                      setState(() {
+                        alertData = 'Declined';
+                      });
+                    },
+                    child: const Text('Decline'),
+                  ),
+                  // Accept Button
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close the dialog
+                      setState(() {
+                        alertData = 'Accepted';
+                      });
+                    },
+                    child: const Text('Accept'),
+                  ),
+                ],
+              );
+            },
+          );
+          isShowen = true;
+        }
+
+        if (mounted) {
+          setState(() {
+            isLoading = false; // Stop loading after data is fetched
+            
+          });
+        }
+      } else {
+        log('No data found for unit $unitId');
+      }
+    } catch (e) {
+      // Catch and log any errors
+      log('Error fetching unit data: $e');
+    }
+  }
+
+  void showCameraAlert(
+      BuildContext context) {
+    // Show the alert dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Go to Specific Camera'),
+          content: const Text(
+            'You have been assigned to go to a specific camera location. Do you accept?',
+          ),
+          actions: [
+            // Decline Button
+            TextButton(
+              onPressed: () {
+                updateUnitLocation(int.parse(unitId.toString()));
+                Navigator.pop(context); // Close the dialog
+                setState(() {
+                  alertData = 'Declined';
+                });
+              },
+              child: const Text('Decline'),
+            ),
+            // Accept Button
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                 setState(() {
+                  alertData = 'Accepted';
+                });
+              },
+              child: const Text('Accept'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> updateUnitLocation(int unitId) async {
+    DatabaseReference unitRef = FirebaseDatabase.instance.ref('/$unitId');
 
     try {
       await unitRef.update({
-        'unit_location/lat': newLat,
-        'unit_location/long': newLong,
-        'camera_location/lat': cameraLat,
-        'camera_location/long': cameraLong,
-        'on_duty': isDuty,
-        'need_emergency': needEmergency,
+        'camera_id': -1,
       });
       log('Unit data updated successfully');
     } catch (e) {
@@ -129,8 +235,7 @@ class _HomePageState extends State<HomePage> {
 
   void startFetchingData() {
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      fetchData(true);
-      F.appFlavor == Flavor.unit ? fetchData(false) : null;
+      F.appFlavor == Flavor.unit ? fetchData(false) : fetchData(true);
     });
   }
 
@@ -139,7 +244,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadUnitSettings();
     _createTutorial();
-    fetchData(true);
+    F.appFlavor == Flavor.unit ? null : fetchData(true);
     startFetchingData();
   }
 
@@ -178,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Text(
-                      "Here you will see all the information you need and you can use it as a Google Maps app with new features.",
+                      'Here you will see all the information you need and you can use it as a Google Maps app with new features.',
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface),
                     ),
@@ -319,7 +424,7 @@ class _HomePageState extends State<HomePage> {
                 child: FlutterMap(
                   options: const MapOptions(
                     initialCenter: LatLng(30.045704, 31.178611),
-                    initialZoom: 13.0,
+                    initialZoom: 15,
                   ),
                   children: [
                     TileLayer(
@@ -328,6 +433,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     MarkerLayer(
                       markers: [
+                        // Add markers for filtered accidents
                         for (var i in filteredData ?? [])
                           Marker(
                             width: 40,
@@ -350,6 +456,21 @@ class _HomePageState extends State<HomePage> {
                                 size: 30,
                               ),
                               color: Colors.red,
+                            ),
+                          ),
+                        if (cameraId != 0 && cameraLocation.isNotEmpty)
+                          Marker(
+                            width: 40,
+                            height: 40,
+                            point: LatLng(cameraLocation[0], cameraLocation[1]),
+                            child: IconButton(
+                              highlightColor: Colors.transparent,
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.camera_alt,
+                                size: 30,
+                                color: Colors.blue,
+                              ),
                             ),
                           ),
                       ],

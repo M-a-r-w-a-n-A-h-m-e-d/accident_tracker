@@ -134,7 +134,7 @@ class _MyFeedbackState extends State<MyFeedback> {
             ),
             const Spacer(),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(bottom:15.0),
               child: ElevatedButton(
                 onPressed: _launchEmail,
                 style: ElevatedButton.styleFrom(

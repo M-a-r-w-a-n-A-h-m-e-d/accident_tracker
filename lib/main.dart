@@ -1,15 +1,10 @@
-import 'package:accident_tracker/App/home/home_page.dart';
-import 'package:accident_tracker/App/main/navigation_bar.dart';
 import 'package:accident_tracker/config/routes/theme_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:connection_notifier/connection_notifier.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'App/auth/auth_page.dart';
-import 'App/settings/language_page.dart';
 import 'config/routes/language_provider.dart';
-import 'core/services/database.dart';
 import 'core/usecases/firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';

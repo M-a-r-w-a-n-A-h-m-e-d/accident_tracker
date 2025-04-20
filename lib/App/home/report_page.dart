@@ -2,6 +2,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import '../main/navigation_bar.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:developer';
 
 class ReportAccident extends StatefulWidget {
   const ReportAccident({super.key});
@@ -13,6 +16,59 @@ class ReportAccident extends StatefulWidget {
 class _ReportAccidentState extends State<ReportAccident> {
   XFile? _image;
   final _descriptionController = TextEditingController();
+  bool isLoading = true;
+  String errorMessage = '';
+  List<dynamic> data = [];
+
+  Future<void> sendData(Map<String, dynamic> dataToSend) async {
+    try {
+      String url = 'https://api31-six.vercel.app/rest/';
+      // Make an HTTP POST request to the provided URL with JSON data in the body
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type':
+              'application/json', // Tell the server we are sending JSON data
+        },
+        body: json.encode(dataToSend), // Convert the data to JSON format
+      );
+      log(response.statusCode.toString());
+      // Check if the response status code is 200 (success)
+      if (response.statusCode == 200) {
+        setState(() {
+          // Decode the response body (if applicable)
+          final decodedData = json.decode(response.body);
+
+          // Handle response data (you can customize this part based on your API's response structure)
+          if (decodedData is List) {
+            data = decodedData;
+          } else if (decodedData is Map) {
+            data = [decodedData];
+          }
+
+          // Set 'isLoading' to false to indicate loading is complete
+          isLoading = false;
+          log("DONE");
+        });
+      } else {
+        setState(() {
+          // If status code isn't 200, set an error message with status code
+          errorMessage = 'Failed to send data: ${response.statusCode}';
+          isLoading = false; // Set 'isLoading' to false
+        });
+      }
+    } catch (e) {
+      // Catch any error during the fetch operation
+      setState(() {
+        // Set the error message to show the exception
+        errorMessage = 'Error: $e';
+        isLoading = false; // Set 'isLoading' to false
+      });
+
+      // Log the error for debugging
+      log('Post error: $e');
+    }
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -49,11 +105,6 @@ class _ReportAccidentState extends State<ReportAccident> {
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
@@ -193,6 +244,21 @@ class _ReportAccidentState extends State<ReportAccident> {
                       if (_descriptionController.text.isEmpty) {
                         _showEmptyFieldsDialog();
                         return;
+                      } else {
+                        sendData({
+                          'pk': -1.0,
+                          'longitude': 31.173894,
+                          'latitude': 29.99834,
+                          'images': base64Encode(
+                            File(_image!.path).readAsBytesSync(),
+                          ),
+                          'is_accident': false,
+                          'is_fire': false,
+                          'target_angle': -1.0,
+                          'servo_angle': -1.0,
+                          'predict': false,
+                          'description': _descriptionController.text
+                        });
                       }
                     },
                     style: ElevatedButton.styleFrom(

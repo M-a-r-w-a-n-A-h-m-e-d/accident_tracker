@@ -58,14 +58,14 @@ class _WelcomePageState extends State<WelcomePage> {
               ],
             ),
             const SizedBox(height: 35),
-            const FadeTransition(
+            FadeTransition(
               opacity: kAlwaysCompleteAnimation,
               child: Center(
                 child: Text(
                   'Welcome',
                   style: TextStyle(
                     fontSize: 47,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSecondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

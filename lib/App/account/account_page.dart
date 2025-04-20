@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:accident_tracker/App/account/update_password_page.dart';
 import 'package:accident_tracker/App/account/edit_profile_page.dart';
 import 'package:accident_tracker/App/auth/auth_page.dart';
 import 'package:accident_tracker/App/main/loading_page.dart';
 import 'package:accident_tracker/flavors.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,6 +15,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+import '../main/navigation_bar.dart';
+
 class Account extends StatefulWidget {
   const Account({super.key});
 
@@ -20,11 +25,23 @@ class Account extends StatefulWidget {
 }
 
 class _AccountState extends State<Account> {
-  final GlobalKey _editProfile = GlobalKey();
   final GlobalKey _changePassword = GlobalKey();
+  final GlobalKey _editProfile = GlobalKey();
   bool isDuty = false;
   bool loaded = false;
   Object? unitId;
+
+  Future<void> updateUnitLocation(int unitId, bool onDuty) async {
+    DatabaseReference unitRef = FirebaseDatabase.instance.ref('/$unitId');
+    try {
+      await unitRef.update({
+        'on_duty': isDuty,
+      });
+      log('Unit data updated successfully');
+    } catch (e) {
+      log('Error updating data: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -181,111 +198,28 @@ class _AccountState extends State<Account> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox.expand(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (user != null) ...[
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditProfile(),
-                        ),
-                      );
-                    },
-                    icon: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: user.photoURL != null
-                          ? NetworkImage(user.photoURL!)
-                          : const AssetImage('assets/profile_pic_purple.png')
-                              as ImageProvider,
-                    ),
-                  ),
-                  Text(
-                    user.displayName ?? 'User',
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSecondary),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Profile Settings',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  F.appFlavor == Flavor.unit
-                      ? Container(
-                          margin: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            borderRadius: BorderRadius.circular(11.0),
-                          ),
-                          child: ListTile(
-                            tileColor: Colors.transparent,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20.0, vertical: 6.0),
-                            leading: loaded
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    child: Container(
-                                      width: 30,
-                                      height: 30,
-                                      color: isDuty
-                                          ? const Color.fromARGB(255, 0, 255, 8)
-                                          : const Color.fromARGB(
-                                              255, 255, 17, 0),
-                                    ),
-                                  )
-                                : Container(
-                                    width: 30,
-                                    height: 30,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                loaded
-                                    ? Text(
-                                        'U${unitId.toString()}',
-                                      )
-                                    : const SizedBox(),
-                                loaded
-                                    ? Switch(
-                                        value: isDuty,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            isDuty = value;
-                                          });
-                                          _saveDutySettings();
-                                        },
-                                      )
-                                    : Container()
-                              ],
-                            ),
-                          ),
-                        )
-                      : const SizedBox(),
-                  const SizedBox(height: 10),
-                  Container(
-                    margin: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(11.0),
-                    ),
-                    child: ListTile(
-                      onTap: () {
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Home(myIndex: 1),
+          ),
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox.expand(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (user != null) ...[
+                    IconButton(
+                      onPressed: () {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -293,93 +227,192 @@ class _AccountState extends State<Account> {
                           ),
                         );
                       },
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 6.0),
-                      leading: Image.asset('assets/edit profile.png'),
-                      title: Center(
-                        child: Text(
-                          key: _editProfile,
-                          'Edit Profile',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
+                      icon: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: user.photoURL != null
+                            ? NetworkImage(user.photoURL!)
+                            : const AssetImage('assets/profile_pic_purple.png')
+                                as ImageProvider,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
+                    Text(
+                      user.displayName ?? 'User',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSecondary),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Profile Settings',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    F.appFlavor == Flavor.unit
+                        ? Container(
+                            margin: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              borderRadius: BorderRadius.circular(11.0),
+                            ),
+                            child: ListTile(
+                              tileColor: Colors.transparent,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 6.0),
+                              leading: loaded
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        color: isDuty
+                                            ? const Color.fromARGB(255, 0, 255, 8)
+                                            : const Color.fromARGB(
+                                                255, 255, 17, 0),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 30,
+                                      height: 30,
+                                      color:
+                                          Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  loaded
+                                      ? Text(
+                                          'U${unitId.toString()}',
+                                        )
+                                      : const SizedBox(),
+                                  loaded
+                                      ? Switch(
+                                          value: isDuty,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isDuty = value;
+                                            });
+                                            updateUnitLocation(
+                                                int.parse(
+                                                  unitId.toString(),
+                                                ),
+                                                isDuty);
+                                            _saveDutySettings();
+                                          },
+                                        )
+                                      : Container()
+                                ],
+                              ),
+                            ),
+                          )
+                        : const SizedBox(),
+                    const SizedBox(height: 10),
+                    Container(
                       margin: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.onPrimary,
                         borderRadius: BorderRadius.circular(11.0),
                       ),
-                      child: FirebaseAuth.instance.currentUser!.emailVerified
-                          ? ListTile(
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const UpdatePassword(),
-                                  ),
-                                );
-                              },
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 6.0),
-                              leading:
-                                  Image.asset('assets/change password.png'),
-                              title: Center(
-                                child: Text(
-                                  key: _changePassword,
-                                  'Change Password',
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfile(),
+                            ),
+                          );
+                        },
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 6.0),
+                        leading: Image.asset('assets/edit profile.png'),
+                        title: Center(
+                          child: Text(
+                            key: _editProfile,
+                            'Edit Profile',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                        margin: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          borderRadius: BorderRadius.circular(11.0),
+                        ),
+                        child: FirebaseAuth.instance.currentUser!.emailVerified
+                            ? ListTile(
+                                onTap: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const UpdatePassword(),
+                                    ),
+                                  );
+                                },
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 6.0),
+                                leading:
+                                    Image.asset('assets/change password.png'),
+                                title: Center(
+                                  child: Text(
+                                    key: _changePassword,
+                                    'Change Password',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          : Container()),
-                  const SizedBox(height: 10),
-                ] else
-                  const Text(
-                    'User not signed in',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                const Spacer(),
-                Container(
-                  margin: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(11.0),
-                  ),
-                  child: ListTile(
-                    onTap: () async {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AuthPage(),
+                              )
+                            : Container()),
+                    const SizedBox(height: 10),
+                  ] else
+                    const Text(
+                      'User not signed in',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  const Spacer(),
+                  Container(
+                    margin: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      borderRadius: BorderRadius.circular(11.0),
+                    ),
+                    child: ListTile(
+                      onTap: () async {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AuthPage(),
+                          ),
+                        );
+                        await FirebaseAuth.instance.signOut();
+                        await GoogleSignIn().signOut();
+                      },
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 1.0),
+                      leading: Image.asset('assets/logout-icon.png'),
+                      title: const Center(
+                        child: Text(
+                          "LOG OUT",
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 255, 17, 0),
+                              fontWeight: FontWeight.bold),
                         ),
-                      );
-                      await FirebaseAuth.instance.signOut();
-                      await GoogleSignIn().signOut();
-                    },
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 1.0),
-                    leading: Image.asset('assets/logout-icon.png'),
-                    title: const Center(
-                      child: Text(
-                        "LOG OUT",
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 255, 17, 0),
-                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 15),
-              ],
+                  const SizedBox(height: 15),
+                ],
+              ),
             ),
           ),
         ),

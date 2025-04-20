@@ -142,11 +142,11 @@ class _ForgotPassState extends State<ForgotPass> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Forgot password?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSecondary,
                           fontSize: 35,
                           fontWeight: FontWeight.bold),
                     ),

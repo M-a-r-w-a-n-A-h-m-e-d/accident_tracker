@@ -21,11 +21,11 @@ class DataBase {
   Future<void> connection() async {
     // Initialize the database connection
     _connection = PostgreSQLConnection(
-      'roundhouse.proxy.rlwy.net', // host
-      57698, // port
+      'turntable.proxy.rlwy.net', // host
+      57675, // port
       'railway', // database name
       username: 'postgres',
-      password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
+      password: 'VZmrYMJRrTTCldsVfvnZPXDScmeYlWcA',
     );
 
     try {
@@ -65,11 +65,11 @@ class DataBase {
       List<String> tables = ['units', 'users', 'testers', 'developers'];
       if (email.isEmpty && password.isEmpty) {
         _connection = PostgreSQLConnection(
-          'roundhouse.proxy.rlwy.net', // host
-          57698, // port
+          'turntable.proxy.rlwy.net', // host
+          57675, // port
           'railway', // database name
           username: 'postgres',
-          password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
+          password: 'VZmrYMJRrTTCldsVfvnZPXDScmeYlWcA',
         );
         await _connection!.open();
       }
@@ -92,11 +92,11 @@ class DataBase {
   Future<List<List>?> searchWithEmail(String email) async {
     try {
       _connection = PostgreSQLConnection(
-        'roundhouse.proxy.rlwy.net', // host
-        57698, // port
+        'turntable.proxy.rlwy.net', // host
+        57675, // port
         'railway', // database name
         username: 'postgres',
-        password: 'UhxWkuzyNoDSTXftBrCMUeVjvZvSiYIi',
+        password: 'VZmrYMJRrTTCldsVfvnZPXDScmeYlWcA',
       );
 
       await _connection!.open();

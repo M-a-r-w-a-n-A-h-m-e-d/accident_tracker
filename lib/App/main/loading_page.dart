@@ -10,21 +10,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:liquid_swipe/liquid_swipe.dart';
-import 'package:flutter/material.dart';
 import '../../core/services/database.dart';
-import '../../flavors.dart';
+import 'package:flutter/material.dart';
 import '../auth/auth_page.dart';
+import '../../flavors.dart';
 import 'dart:async';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
 
   @override
-  _LoadingPageState createState() => _LoadingPageState();
+  LoadingPageState createState() => LoadingPageState();
 }
 
-class _LoadingPageState extends State<LoadingPage> {
+class LoadingPageState extends State<LoadingPage> {
   // final shorebirdCodePush = ShorebirdCodePush();
   bool _showCards = false;
   bool isDark = false;
@@ -61,10 +60,13 @@ class _LoadingPageState extends State<LoadingPage> {
               email: user.providerData[0].email ?? '', password: 'password')
           .searchWithEmail(user.providerData[0].email ?? '');
 
-      if (result == null || result.isEmpty) {
+      if (result!.isEmpty) {
         log('User data not found in the database');
         return; // Exit if no data found for the user
       }
+      log(result[0][0].toString());
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('unit_Id', (result[0][0]).toString());
     } catch (e) {
       log("Error: $e");
     }
@@ -83,7 +85,7 @@ class _LoadingPageState extends State<LoadingPage> {
     try {
       await Future.wait([_permissionsHandler(), _checkForUpdate()]);
     } catch (e) {
-      print('Initialization error: $e');
+      log('Initialization error: $e');
     }
   }
 
@@ -311,9 +313,7 @@ class Cards extends StatefulWidget {
 }
 
 class _CardsState extends State<Cards> {
-  final controller = LiquidController();
-  bool nextScreen = false;
-  bool notFirstpage = false;
+  final controller = PageController();
   int? last;
 
   @override
@@ -322,10 +322,9 @@ class _CardsState extends State<Cards> {
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          LiquidSwipe(
-            liquidController: controller,
-            enableSideReveal: true,
-            onPageChangeCallback: (index) {
+          PageView(
+            controller: controller,
+            onPageChanged: (index) {
               setState(() {
                 if (index == 0 && last == 3) {
                   Navigator.pushReplacement(
@@ -335,20 +334,15 @@ class _CardsState extends State<Cards> {
                     ),
                   );
                 }
-
                 last = index;
               });
             },
-            slideIconWidget: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.white,
-            ),
-            pages: const [
+            children: const [
               OnboardingPage(
                 title: 'Track Accidents',
                 description: 'Easily track and report accidents in real-time.',
                 imageAsset: 'assets/IVision.png',
-                color: Colors.blue,
+                color: Colors.red,
               ),
               OnboardingPage(
                 title: 'Get Notifications',
@@ -368,14 +362,14 @@ class _CardsState extends State<Cards> {
                 description:
                     'Enjoy a seamless and user-friendly interface for tracking and reporting.',
                 imageAsset: 'assets/IVision.png',
-                color: Colors.green,
+                color: Colors.yellow,
               ),
             ],
           ),
           Positioned(
-            bottom: 0,
+            bottom: 20,
             left: 16,
-            right: 32,
+            right: 16,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -388,38 +382,17 @@ class _CardsState extends State<Cards> {
                       ),
                     );
                   },
-                  child: const Text('SKIP'),
-                ),
-                AnimatedSmoothIndicator(
-                  activeIndex: controller.currentPage,
-                  count: 4,
-                  onDotClicked: (index) {
-                    controller.jumpToPage(page: index);
-                  },
-                  effect: const WormEffect(
-                    spacing: 16,
-                    dotColor: Colors.white54,
-                    activeDotColor: Colors.white,
+                  child: const Text(
+                    'SKIP',
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    final page = controller.currentPage + 1;
-                    if (page == 4) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const WelcomePage(),
-                        ),
-                      );
-                    } else {
-                      controller.animateToPage(page: page % 4, duration: 400);
-                    }
-                  },
-                  child: controller.currentPage == 3
-                      ? const Text('Get Started')
-                      : const Text('NEXT'),
+                SmoothPageIndicator(
+                  controller: controller,
+                  count: 4,
+                  effect: const ExpandingDotsEffect(),
                 ),
+                // Optionally, you can add a "Next" button here for better flow
               ],
             ),
           ),
@@ -446,20 +419,20 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(8),
       color: color,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.asset(
-            imageAsset,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+          Image.asset(imageAsset),
           const SizedBox(height: 20),
           Text(
             title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 10),
           Padding(

@@ -21,31 +21,39 @@ class _AccidentPageState extends State<AccidentPage> {
 
   Future<void> fetchData() async {
     try {
+      // Sending a GET request to the specified URL
       final response = await http.get(Uri.parse(url));
+
+      // If the response is successful (status code 200)
       if (response.statusCode == 200) {
         setState(() {
+          // Decoding the JSON response body
           final decodedData = json.decode(response.body);
+
+          // Handling different response formats (List or Map)
           if (decodedData is List) {
-            data = decodedData;
+            data = decodedData; // Assigning list data
           } else if (decodedData is Map) {
-            data = [decodedData];
+            data = [decodedData]; // Wrapping single object in a list
           }
-          isLoading = false;
+          isLoading = false; // Marking data load as complete
         });
       } else {
+        // Handling non-200 response codes (errors)
         setState(() {
           errorMessage = "Failed to load data: ${response.statusCode}";
           isLoading = false;
         });
       }
     } catch (e) {
+      // Catching and handling any exceptions during the request
       setState(() {
         errorMessage = "Error: $e";
         isLoading = false;
       });
-      debugPrint("Fetch error: $e");
     }
   }
+
 
   @override
   void initState() {

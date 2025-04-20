@@ -58,6 +58,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
         body: SingleChildScrollView(
           child: Center(
             child: Container(
+              padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.only(left: 13, top: 10),
               child: Column(
                 spacing: 20,
